@@ -90,15 +90,15 @@ Este proyecto es una aplicación de escritorio desarrollada en **Java** para ges
 
 ## 📂 Estructura del Proyecto
 
-   src/
-└── main/
-├── java/
-│ └── com/municipio/eventos/
-│ ├── modelo/ → Clases del dominio (Evento, Persona, etc.)
-│ ├── servicio/ → Lógica de negocio y servicios
-│ └── interfaz/ → Controladores y vistas JavaFX
-└── resources/
-└── application.properties (configuración de conexión)
+📦 src
+└── 📁 main
+├── 📁 java
+│ └── 📁 com.municipio.eventos
+│ ├── 📁 modelo # Clases del dominio (Evento, Persona, etc.)
+│ ├── 📁 servicio # Lógica de negocio y validaciones
+│ └── 📁 interfaz # Controladores y vistas JavaFX
+└── 📁 resources
+└── 📄 application.properties # Configuración de conexión a la base de datos
 
 
 
