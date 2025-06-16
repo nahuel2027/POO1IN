@@ -171,7 +171,12 @@ public class MainApp {
 
         // 9. Probar eliminación de un evento
         System.out.println("\n--- Eliminando un evento (Taller de Prueba Cupo) ---");
-        eventoService.eliminarEvento("Taller de Prueba Cupo", LocalDate.of(2025, 12, 1));
+        Optional<Evento> tallerDemoCupoBuscado = eventoService.buscarEvento("Taller de Prueba Cupo", LocalDate.of(2025, 12, 1));
+        if (tallerDemoCupoBuscado.isPresent()) {
+            eventoService.eliminarEvento(tallerDemoCupoBuscado.get());
+        } else {
+            System.out.println("No se encontró el evento 'Taller de Prueba Cupo' para eliminar.");
+        }
         System.out.println("\n--- Verificando lista de eventos después de eliminación ---");
         for (Evento e : eventoService.getTodosLosEventos()) {
             System.out.println(e.getNombre() + " - " + e.getFechaInicio());

@@ -3,6 +3,8 @@ package com.municipio.eventos.dao;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+
+import com.municipio.eventos.models.Inscripcion;
 import com.municipio.eventos.models.abstractas.Evento;
 import java.util.List;
 
@@ -46,5 +48,13 @@ public class EventoDAO {
         List<Evento> eventos = em.createQuery("SELECT e FROM Evento e", Evento.class).getResultList();
         em.close();
         return eventos;
+    }
+
+    public void guardarInscripcion(Inscripcion inscripcion) {
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+        em.persist(inscripcion);
+        em.getTransaction().commit();
+        em.close();
     }
 }

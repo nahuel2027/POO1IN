@@ -4,8 +4,6 @@ package com.municipio.eventos.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-
 import com.municipio.eventos.models.abstractas.Evento;
 import com.municipio.eventos.models.CicloDeCine;
 import com.municipio.eventos.models.Concierto;
