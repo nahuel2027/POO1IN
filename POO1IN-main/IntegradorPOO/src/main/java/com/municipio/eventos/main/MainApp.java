@@ -1,14 +1,27 @@
 // src/main/java/com/municipio/eventos/main/MainApp.java
 package com.municipio.eventos.main;
 
-import com.municipio.eventos.models.*; // Importa todas las clases de modelos
-import com.municipio.eventos.models.abstractas.Evento; // Importa explícitamente Evento abstracto
-import com.municipio.eventos.models.enums.*; // Importa todas las enumeraciones
-import com.municipio.eventos.services.EventoService;
+import java.time.LocalDate; // Importa todas las clases de modelos
+import java.util.List; // Importa explícitamente Evento abstracto
+import java.util.Optional; // Importa todas las enumeraciones
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import com.municipio.eventos.models.Artista;
+import com.municipio.eventos.models.CicloDeCine;
+import com.municipio.eventos.models.Concierto;
+import com.municipio.eventos.models.Curador;
+import com.municipio.eventos.models.Exposicion;
+import com.municipio.eventos.models.Feria;
+import com.municipio.eventos.models.Instructor;
+import com.municipio.eventos.models.Organizador;
+import com.municipio.eventos.models.Participante;
+import com.municipio.eventos.models.Pelicula;
+import com.municipio.eventos.models.Taller;
+import com.municipio.eventos.models.abstractas.Evento;
+import com.municipio.eventos.models.enums.EstadoEvento;
+import com.municipio.eventos.models.enums.ModalidadTaller;
+import com.municipio.eventos.models.enums.TipoEntradaConcierto;
+import com.municipio.eventos.models.enums.TipoUbicacionFeria;
+import com.municipio.eventos.services.EventoService;
 
 public class MainApp {
 
@@ -171,12 +184,7 @@ public class MainApp {
 
         // 9. Probar eliminación de un evento
         System.out.println("\n--- Eliminando un evento (Taller de Prueba Cupo) ---");
-        Optional<Evento> tallerDemoCupoBuscado = eventoService.buscarEvento("Taller de Prueba Cupo", LocalDate.of(2025, 12, 1));
-        if (tallerDemoCupoBuscado.isPresent()) {
-            eventoService.eliminarEvento(tallerDemoCupoBuscado.get());
-        } else {
-            System.out.println("No se encontró el evento 'Taller de Prueba Cupo' para eliminar.");
-        }
+        eventoService.eliminarEvento("Taller de Prueba Cupo", LocalDate.of(2025, 12, 1));
         System.out.println("\n--- Verificando lista de eventos después de eliminación ---");
         for (Evento e : eventoService.getTodosLosEventos()) {
             System.out.println(e.getNombre() + " - " + e.getFechaInicio());

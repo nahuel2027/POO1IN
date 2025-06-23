@@ -1,157 +1,203 @@
 package com.municipio.eventos.services;
 
-import com.municipio.eventos.dao.EventoDAO;
-import com.municipio.eventos.models.abstractas.Evento;
-import com.municipio.eventos.models.enums.EstadoEvento;
-
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.municipio.eventos.models.*;
+import com.municipio.eventos.models.Inscripcion;
+import com.municipio.eventos.models.Organizador;
+import com.municipio.eventos.models.Participante;
 import com.municipio.eventos.models.abstractas.Evento;
+import com.municipio.eventos.models.enums.EstadoEvento; // Para manejar la posible ausencia de un evento
 
 public class EventoService {
-    private EventoDAO eventoDAO = new EventoDAO();
 
+    private List<Evento> eventos; // Una lista en memoria para almacenar los eventos por ahora
+
+    public EventoService() {
+        this.eventos = new ArrayList<>();
+    }
+
+    /**
+     * Registra un nuevo evento en el sistema.
+     * @param evento El objeto Evento a registrar.
+     * @return true si el evento se registró exitosamente, false si ya existe un evento con el mismo nombre y fecha.
+     */
     public boolean agregarEvento(Evento evento) {
-        // Validación: no permitir dos eventos con el mismo nombre y fecha de inicio
-        List<Evento> existentes = eventoDAO.obtenerTodos();
-        boolean existe = existentes.stream().anyMatch(e ->
+        // Validación básica: no permitir dos eventos con el mismo nombre y fecha de inicio
+        boolean existe = eventos.stream().anyMatch(e ->
             e.getNombre().equalsIgnoreCase(evento.getNombre()) &&
             e.getFechaInicio().equals(evento.getFechaInicio())
         );
         if (existe) {
-            System.out.println("Error: Ya existe un evento con ese nombre y fecha.");
+            System.out.println("Error: Ya existe un evento con el nombre '" + evento.getNombre() + "' para la fecha " + evento.getFechaInicio() + ".");
             return false;
         }
-        eventoDAO.guardar(evento);
+        eventos.add(evento);
         System.out.println("Evento '" + evento.getNombre() + "' agregado con éxito.");
         return true;
     }
 
-    public boolean modificarEvento(Evento evento) {
-        eventoDAO.actualizar(evento);
-        System.out.println("Evento '" + evento.getNombre() + "' modificado con éxito.");
-        return true;
+    /**
+     * Modifica un evento existente.
+     * @param eventoModificado El objeto Evento con los datos actualizados.
+     * @return true si el evento se modificó exitosamente, false si el evento no se encontró.
+     */
+    public boolean modificarEvento(Evento eventoModificado) {
+        for (int i = 0; i < eventos.size(); i++) {
+            if (eventos.get(i).getNombre().equalsIgnoreCase(eventoModificado.getNombre()) &&
+                eventos.get(i).getFechaInicio().equals(eventoModificado.getFechaInicio())) { // Identificar por nombre y fecha
+                eventos.set(i, eventoModificado);
+                System.out.println("Evento '" + eventoModificado.getNombre() + "' modificado con éxito.");
+                return true;
+            }
+        }
+        System.out.println("Error: Evento '" + eventoModificado.getNombre() + "' no encontrado para modificar.");
+        return false;
     }
 
-    public boolean eliminarEvento(Evento evento) {
-        eventoDAO.eliminar(evento);
-        System.out.println("Evento '" + evento.getNombre() + "' eliminado con éxito.");
-        return true;
+    /**
+     * Elimina un evento del sistema.
+     * @param nombreEvento El nombre del evento a eliminar.
+     * @param fechaInicio La fecha de inicio del evento a eliminar.
+     * @return true si el evento se eliminó exitosamente, false si no se encontró.
+     */
+    public boolean eliminarEvento(String nombreEvento, LocalDate fechaInicio) {
+        boolean removido = eventos.removeIf(e ->
+            e.getNombre().equalsIgnoreCase(nombreEvento) &&
+            e.getFechaInicio().equals(fechaInicio)
+        );
+        if (removido) {
+            System.out.println("Evento '" + nombreEvento + "' eliminado con éxito.");
+        } else {
+            System.out.println("Error: Evento '" + nombreEvento + "' no encontrado para eliminar.");
+        }
+        return removido;
     }
 
-    public Evento buscarEventoPorId(Long id) {
-        return eventoDAO.buscarPorId(id);
+    /**
+     * Busca un evento por su nombre y fecha de inicio.
+     * @param nombreEvento El nombre del evento.
+     * @param fechaInicio La fecha de inicio del evento.
+     * @return Un objeto Optional que contiene el Evento si se encuentra, o un Optional vacío si no.
+     */
+    public Optional<Evento> buscarEvento(String nombreEvento, LocalDate fechaInicio) {
+        return eventos.stream()
+                      .filter(e -> e.getNombre().equalsIgnoreCase(nombreEvento) && e.getFechaInicio().equals(fechaInicio))
+                      .findFirst();
     }
 
-    public List<Evento> getTodosLosEventos() {
-        return eventoDAO.obtenerTodos();
+    /**
+     * Asocia un organizador a un evento.
+     * @param evento El evento al que se agregará el organizador.
+     * @param organizador El organizador a asociar.
+     * @return true si se asoció correctamente, false si el evento no existe o el organizador ya está asociado.
+     */
+    public boolean asociarOrganizadorAEvento(Evento evento, Organizador organizador) {
+        if (eventos.contains(evento)) {
+            if (!evento.getResponsables().contains(organizador)) {
+                evento.agregarResponsable(organizador);
+                System.out.println("Organizador '" + organizador.getNombreCompleto() + "' asociado al evento '" + evento.getNombre() + "'.");
+                return true;
+            } else {
+                System.out.println("Error: El organizador '" + organizador.getNombreCompleto() + "' ya es responsable del evento '" + evento.getNombre() + "'.");
+            }
+        } else {
+            System.out.println("Error: El evento '" + evento.getNombre() + "' no existe en el sistema.");
+        }
+        return false;
     }
 
-
-    public List<Evento> buscarEventosPorNombre(String nombre) {
-        return eventoDAO.obtenerTodos().stream()
-            .filter(e -> e.getNombre().equalsIgnoreCase(nombre))
-            .toList();
-    }
-
-
-    // Asociar organizador a cualquier evento
-    public boolean asociarOrganizador(Evento evento, Organizador organizador) {
-        if (evento == null || organizador == null) return false;
-        evento.agregarResponsable(organizador);
-        eventoDAO.actualizar(evento);
-        return true;
-    }
-
-    // Asociar artista a concierto
-    public boolean asociarArtistaAConcierto(Concierto concierto, Artista artista) {
-        if (concierto == null || artista == null) return false;
-        concierto.agregarArtista(artista);
-        eventoDAO.actualizar(concierto);
-        return true;
-    }
-
-    // Asociar curador a exposición
-    public boolean asociarCuradorAExposicion(Exposicion exposicion, Curador curador) {
-        if (exposicion == null || curador == null) return false;
-        exposicion.setCurador(curador);
-        eventoDAO.actualizar(exposicion);
-        return true;
-    }
-
-    // Asociar instructor a taller
-    public boolean asociarInstructorATaller(Taller taller, Instructor instructor) {
-        if (taller == null || instructor == null) return false;
-        taller.setInstructor(instructor);
-        eventoDAO.actualizar(taller);
-        return true;
-    }
-
-    // Cambiar estado de evento
-    public boolean cambiarEstadoEvento(Evento evento, EstadoEvento nuevoEstado) {
-        if (evento == null || nuevoEstado == null) return false;
-        evento.setEstado(nuevoEstado);
-        eventoDAO.actualizar(evento);
-        System.out.println("Estado del evento '" + evento.getNombre() + "' cambiado a " + nuevoEstado);
-        return true;
-    }
-
-    // Registrar participante a evento
+    /**
+     * Registra un participante en un evento.
+     * @param evento El evento al que se desea inscribir el participante.
+     * @param participante El participante a inscribir.
+     * @return true si la inscripción fue exitosa, false en caso contrario (evento no confirmado/finalizado, cupo lleno, ya inscrito).
+     */
     public boolean registrarParticipanteAEvento(Evento evento, Participante participante) {
-        if (evento == null || participante == null) return false;
-        if (evento.getEstado() != EstadoEvento.CONFIRMADO) {
-            System.out.println("Error: No se puede inscribir en un evento que no está confirmado.");
+        if (!eventos.contains(evento)) {
+            System.out.println("Error: El evento '" + evento.getNombre() + "' no existe en el sistema.");
             return false;
         }
-        if (evento instanceof Taller && ((Taller) evento).getCupoMaximo() > 0 &&
-            evento.getInscripciones().size() >= ((Taller) evento).getCupoMaximo()) {
-            System.out.println("Error: El taller '" + evento.getNombre() + "' ya ha alcanzado su cupo máximo.");
+
+        // Validar si el evento permite la inscripción (estado y cupo)
+        if (!evento.permitirInscripcion()) {
+            return false; // El método permitirInscripcion() ya imprime el error
+        }
+
+        // Verificar si el participante ya está inscrito en este evento
+        boolean yaInscrito = evento.getInscripciones().stream()
+                                  .anyMatch(insc -> insc.getParticipante().equals(participante)); // Asegúrate de implementar equals en Participante si DNI es el identificador único
+        if (yaInscrito) {
+            System.out.println("Error: El participante '" + participante.getNombreCompleto() + "' ya está inscrito en el evento '" + evento.getNombre() + "'.");
             return false;
         }
-        Inscripcion inscripcion = new Inscripcion(participante, evento);
-        eventoDAO.guardarInscripcion(inscripcion);
-        System.out.println("Participante '" + participante.getNombreCompleto() + "' inscrito en el evento '" + evento.getNombre() + "'.");
+
+        // Realizar la inscripción
+        Inscripcion nuevaInscripcion = new Inscripcion(participante, evento);
+        evento.getInscripciones().add(nuevaInscripcion);
+        System.out.println("Participante '" + participante.getNombreCompleto() + "' inscrito con éxito en el evento '" + evento.getNombre() + "'.");
         return true;
     }
 
- //Registrar participante a evento con fecha específica
-    public boolean registrarParticipanteAEventoConFecha(Evento evento, Participante participante, LocalDate fechaInscripcion) {
-        if (evento == null || participante == null || fechaInscripcion == null) return false;
-        if (evento.getEstado() != EstadoEvento.CONFIRMADO) {
-            System.out.println("Error: No se puede inscribir en un evento que no está confirmado.");
-            return false;
+    /**
+     * Cambia el estado de un evento.
+     * @param evento El evento cuyo estado se desea cambiar.
+     * @param nuevoEstado El nuevo estado del evento.
+     * @return true si el estado se cambió, false si el evento no existe.
+     */
+    public boolean cambiarEstadoEvento(Evento evento, EstadoEvento nuevoEstado) {
+        if (eventos.contains(evento)) {
+            evento.cambiarEstado(nuevoEstado);
+            return true;
         }
-        if (evento instanceof Taller && ((Taller) evento).getCupoMaximo() > 0 &&
-            evento.getInscripciones().size() >= ((Taller) evento).getCupoMaximo()) {
-            System.out.println("Error: El taller '" + evento.getNombre() + "' ya ha alcanzado su cupo máximo.");
-            return false;
-        }
-        Inscripcion inscripcion = new Inscripcion(participante, evento);
-        inscripcion.setFechaInscripcion(fechaInscripcion);
-        eventoDAO.guardarInscripcion(inscripcion);
-        System.out.println("Participante '" + participante.getNombreCompleto() + "' inscrito en el evento '" + evento.getNombre() + "' con fecha " + fechaInscripcion);
-        return true;
+        System.out.println("Error: El evento '" + evento.getNombre() + "' no existe en el sistema para cambiar su estado.");
+        return false;
     }
 
+    /**
+     * Lista todos los eventos.
+     * @return Una lista de todos los eventos registrados.
+     */
+    public List<Evento> getTodosLosEventos() {
+        return new ArrayList<>(eventos); // Devolver una copia para evitar modificaciones externas directas
+    }
 
-
-    // Obtener participantes de un evento
-
+    /**
+     * Lista los participantes inscritos en un evento específico.
+     * @param evento El evento del que se quieren listar los participantes.
+     * @return Una lista de Participantes inscritos en el evento.
+     */
     public List<Participante> getParticipantesPorEvento(Evento evento) {
-        if (evento == null) return List.of();
-        return evento.getInscripciones().stream()
-            .map(Inscripcion::getParticipante)
-            .toList();
+        if (eventos.contains(evento)) {
+            List<Participante> participantes = new ArrayList<>();
+            for (Inscripcion insc : evento.getInscripciones()) {
+                participantes.add(insc.getParticipante());
+            }
+            return participantes;
+        }
+        System.out.println("Error: El evento '" + evento.getNombre() + "' no existe en el sistema.");
+        return new ArrayList<>(); // Retorna lista vacía si el evento no existe
     }
 
-    // Buscar evento por nombre y fecha
-    public Optional<Evento> buscarEvento(String nombre, LocalDate fecha) {
-        return getTodosLosEventos().stream()
-                .filter(e -> e.getNombre().equalsIgnoreCase(nombre) && e.getFechaInicio().equals(fecha))
-                .findFirst();
+    /**
+     * Valida el cupo máximo de un evento. (La lógica ya está en Evento.permitirInscripcion())
+     * Este método es más bien una interfaz para llamar a la validación interna.
+     * @param evento El evento a validar.
+     * @return true si hay cupo disponible o si no aplica cupo, false si el cupo está lleno.
+     */
+    public boolean validarCupoEvento(Evento evento) {
+        if (evento.isRequiereInscripcion() && evento.getCupoMaximo() > 0) {
+            return evento.getInscripciones().size() < evento.getCupoMaximo();
+        }
+        return true; // No requiere inscripción o no tiene cupo máximo, por lo tanto, no hay problema de cupo
+    }
 
-   }
+    // --- Métodos pendientes para la gestión de Personas si es necesario ---
+    // En un sistema más grande, tendrías un 'PersonaService' o 'OrganizadorService', 'ParticipanteService' etc.
+    // Por ahora, si solo necesitas registrar personas para asociarlas a eventos, puedes manejarlas aquí o crear un servicio más simple.
+    // Para simplificar, asumiremos que las Personas (Organizadores, Artistas, etc.) se gestionan en una lista aparte
+    // y se "buscan" para asociarlas a eventos. Por ahora, no se implementa una gestión CRUD completa de Personas.
+    // Si necesitamos un alta/baja/modificación general de personas, podemos añadir listas aquí o en un nuevo servicio.
 }
