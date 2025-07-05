@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.2"
+             xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+
+    <persistence-unit name="EventosPU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- Clases de Entidad (tus modelos JPA) -->
+        <class>com.municipio.eventos.models.abstractas.Evento</class>
+        <class>com.municipio.eventos.models.Feria</class>
+        <class>com.municipio.eventos.models.Concierto</class>
+        <class>com.municipio.eventos.models.Exposicion</class>
+        <class>com.municipio.eventos.models.Taller</class>
+        <class>com.municipio.eventos.models.CicloDeCine</class>
+        <class>com.municipio.eventos.models.Pelicula</class>
+
+        <class>com.municipio.eventos.models.Persona</class>
+        <class>com.municipio.eventos.models.Organizador</class>
+        <class>com.municipio.eventos.models.Artista</class>
+        <class>com.municipio.eventos.models.Curador</class>
+        <class>com.municipio.eventos.models.Instructor</class>
+        <class>com.municipio.eventos.models.Participante</class>
+
+        <class>com.municipio.eventos.models.Inscripcion</class>
+
+        <properties>
+            <!-- Propiedades de conexión a PostgreSQL -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/eventos_db" />
+            <property name="jakarta.persistence.jdbc.user" value="postgres" /> <!-- CAMBIA ESTO -->
+            <property name="jakarta.persistence.jdbc.password" value="Postgres" /> <!-- CAMBIA ESTO -->
+
+            <!-- Propiedades de Hibernate -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.show_sql" value="true" /> <!-- Mostrar SQL en consola -->
+            <property name="hibernate.format_sql" value="true" /> <!-- Formatear SQL -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="update"/>
+        </properties>
+    </persistence-unit>
+</persistence>
