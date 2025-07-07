@@ -1,7 +1,6 @@
 package com.municipio.eventos.ventanaprincipal;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -569,11 +568,14 @@ public class VentanaPrincipal extends Application {
             }
         });
 
-        inscribirBtn.setOnAction(e -> {
+       inscribirBtn.setOnAction(e -> {
             Evento eventoSeleccionado = eventoComboBoxInscripcion.getValue();
             Participante participanteSeleccionado = participanteComboBoxInscripcion.getValue();
 
-            if (eventoSeleccionado == null || participanteSeleccionado == null) { new Alert(Alert.AlertType.ERROR, "Debe seleccionar un Evento y un Participante para inscribir.").showAndWait(); return; }
+            if (eventoSeleccionado == null || participanteSeleccionado == null) {
+                new Alert(Alert.AlertType.ERROR, "Debe seleccionar un Evento y un Participante para inscribir.").showAndWait();
+                return;
+            }
 
             Optional<Evento> managedEventoOpt = eventoService.buscarEvento(eventoSeleccionado.getId());
             Optional<Persona> managedParticipanteOpt = personaService.buscarPersonaPorDni(participanteSeleccionado.getDni());
@@ -584,13 +586,21 @@ public class VentanaPrincipal extends Application {
 
                 if (eventoService.registrarParticipanteAEvento(managedEvento, managedParticipante)) {
                     new Alert(Alert.AlertType.INFORMATION, "Participante '" + managedParticipante.getNombreCompleto() + "' inscrito con éxito en '" + managedEvento.getNombre() + "'.").showAndWait();
-                    eventoComboBoxInscripcion.getSelectionModel().select(managedEvento); 
-                    actualizarTodasLasListas(); 
-                } else { new Alert(Alert.AlertType.WARNING, "No se pudo inscribir al participante. Verifique los requisitos del evento (estado, cupo, si ya está inscrito).").showAndWait(); }
+                    // --- Mantener seleccionado el evento después de actualizar ---
+                    Evento eventoParaMantener = managedEvento;
+                    actualizarTodasLasListas();
+                    eventoComboBoxInscripcion.getSelectionModel().select(
+                        eventoComboBoxInscripcion.getItems().stream()
+                            .filter(ev -> ev.getId().equals(eventoParaMantener.getId()))
+                            .findFirst().orElse(null)
+                    );
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "No se pudo inscribir al participante. Verifique los requisitos del evento (estado, cupo, si ya está inscrito).").showAndWait();
+                }
             } else {
                 new Alert(Alert.AlertType.ERROR, "Error: El evento o el participante seleccionado no pudieron ser recuperados de la base de datos.").showAndWait();
             }
-        });
+    });
 
         participantesContent.getChildren().addAll(lblTituloInscripcion, eventoLabel, eventoComboBoxInscripcion,
             participanteLabel, participanteComboBoxInscripcion, inscribirBtn, new Separator(),
@@ -879,7 +889,7 @@ public class VentanaPrincipal extends Application {
     private void cargarComboBoxInscripcion(ComboBox<Evento> eventoComboBox, ComboBox<Participante> participanteComboBox) {
         eventoComboBox.getItems().clear();
         participanteComboBox.getItems().clear();
-
+        
         List<Evento> eventosDisponibles = eventoService.getTodosLosEventos();
         for (Evento evento : eventosDisponibles) {
             if (evento.isRequiereInscripcion() && evento.getEstado() == EstadoEvento.CONFIRMADO) {
